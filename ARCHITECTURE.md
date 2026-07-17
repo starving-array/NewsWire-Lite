@@ -1,6 +1,6 @@
 # Financial News Management Platform (FNMP) — Architecture Document
 
-Stack: Java 21, Spring Boot 3.x, PostgreSQL 16, Redis, OpenSearch/Elasticsearch, Kafka, Kubernetes.
+Stack: Java 17, Spring Boot 3.x, PostgreSQL 16, Redis, OpenSearch/Elasticsearch, Kafka, Kubernetes.
 
 ## 0. Assumptions (see full list in §17)
 - Microservices-leaning modular monolith at launch, split later (see Trade-Offs).
