@@ -1,0 +1,35 @@
+# --- Implementation Plan (design doc, not source) ---
+IMPLEMENTATION_PLAN.md
+
+# --- Build output ---
+target/
+*.jar
+*.war
+*.ear
+
+# --- IDE ---
+.idea/
+*.iml
+*.iws
+.vscode/
+*.swp
+*.swo
+*~
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+*.log
+
+# --- Maven wrapper (managed separately) ---
+.mvn/
+!mvnw
+!mvnw.cmd
+
+# --- Env files with secrets ---
+.env
+.env.local
+*.env
+
+# --- Node (if any frontend tooling lands here) ---
+node_modules/

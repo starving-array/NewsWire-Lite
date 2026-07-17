@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.ingestionService.name }}
+  labels:
+    app: {{ .Values.ingestionService.name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  replicas: {{ .Values.ingestionService.replicaCount }}
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: {{ .Values.ingestionService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.ingestionService.name }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.ingestionService.port }}"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: {{ .Values.ingestionService.name }}
+          image: "{{ .Values.ingestionService.image.repository }}:{{ .Values.ingestionService.image.tag }}"
+          imagePullPolicy: {{ .Values.ingestionService.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.ingestionService.port }}
+              protocol: TCP
+          env:
+            {{- range $key, $value := .Values.ingestionService.env }}
+            - name: {{ $key }}
+              value: "{{ $value }}"
+            {{- end }}
+          resources:
+            {{- toYaml .Values.ingestionService.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.ingestionService.health.livenessPath }}
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.ingestionService.health.readinessPath }}
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 5
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop: ["ALL"]

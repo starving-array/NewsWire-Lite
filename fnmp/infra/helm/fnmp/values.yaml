@@ -1,0 +1,165 @@
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+global:
+  environment: staging
+  imageRegistry: ghcr.io
+
+articleService:
+  name: article-service
+  replicaCount: 2
+  image:
+    repository: ghcr.io/anomalyco/newswire-lite/article-service
+    tag: latest
+    pullPolicy: Always
+  port: 8080
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPU: 70
+    targetMemory: 80
+  health:
+    livenessPath: /actuator/health/liveness
+    readinessPath: /actuator/health/readiness
+  serviceAccount:
+    create: true
+  env:
+    SPRING_PROFILES_ACTIVE: staging
+    POSTGRES_HOST: fnmp-postgresql
+    POSTGRES_USER: fnmp
+    POSTGRES_PASSWORD: ""
+    REDIS_HOST: fnmp-redis-master
+    KAFKA_BOOTSTRAP_SERVERS: fnmp-kafka:9092
+    OPENSEARCH_HOST: fnmp-opensearch
+    JWT_ISSUER_URI: http://keycloak:8080/auth/realms/fnmp
+
+searchService:
+  name: search-service
+  replicaCount: 2
+  image:
+    repository: ghcr.io/anomalyco/newswire-lite/search-service
+    tag: latest
+    pullPolicy: Always
+  port: 8081
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPU: 70
+    targetMemory: 80
+  health:
+    livenessPath: /actuator/health/liveness
+    readinessPath: /actuator/health/readiness
+  env:
+    SPRING_PROFILES_ACTIVE: staging
+    KAFKA_BOOTSTRAP_SERVERS: fnmp-kafka:9092
+    OPENSEARCH_HOST: fnmp-opensearch
+    JWT_ISSUER_URI: http://keycloak:8080/auth/realms/fnmp
+
+ingestionService:
+  name: ingestion-service
+  replicaCount: 1
+  image:
+    repository: ghcr.io/anomalyco/newswire-lite/ingestion-service
+    tag: latest
+    pullPolicy: Always
+  port: 8082
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 70
+  env:
+    SPRING_PROFILES_ACTIVE: staging
+    KAFKA_BOOTSTRAP_SERVERS: fnmp-kafka:9092
+    JWT_ISSUER_URI: http://keycloak:8080/auth/realms/fnmp
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/rate-limit: "10r/s"
+  hosts:
+    - host: api.fnmp.dev
+      paths:
+        - path: /api/v1/articles
+          pathType: Prefix
+          serviceName: article-service
+          servicePort: 8080
+        - path: /api/v1/articles/search
+          pathType: Prefix
+          serviceName: search-service
+          servicePort: 8081
+  tls:
+    - hosts:
+        - api.fnmp.dev
+      secretName: fnmp-tls
+
+postgresql:
+  enabled: false
+  auth:
+    database: fnmp
+    username: fnmp
+    password: fnmp
+
+redis:
+  enabled: false
+  architecture: standalone
+  auth:
+    enabled: false
+
+kafka:
+  enabled: false
+  listeners:
+    client:
+      protocol: PLAINTEXT
+  provisioning:
+    topics:
+      - name: article.created
+        partitions: 12
+        replicationFactor: 3
+      - name: article.deleted
+        partitions: 6
+        replicationFactor: 3
+
+opensearch:
+  enabled: false
+  config:
+    action.auto_create_index: "true"
+  singleNode: true
+
+monitoring:
+  enabled: false
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: true
+    adminPassword: admin
+
+secrets:
+  postgresPassword: ""
+  jwtSecret: ""

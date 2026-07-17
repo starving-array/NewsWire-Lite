@@ -1,0 +1,13 @@
+target/
+*.jar
+*.log
+.git/
+.idea/
+*.iml
+.mvn/
+!mvnw
+!mvnw.cmd
+!pom.xml
+node_modules/
+__pycache__/
+*.pyc

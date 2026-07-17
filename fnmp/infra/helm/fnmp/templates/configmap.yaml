@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fnmp.fullname" . }}-config
+data:
+  spring.profiles.active: {{ .Values.global.environment }}
+  postgres.host: {{ .Values.articleService.env.POSTGRES_HOST }}
+  postgres.user: {{ .Values.articleService.env.POSTGRES_USER }}
+  redis.host: {{ .Values.articleService.env.REDIS_HOST }}
+  kafka.bootstrap: {{ .Values.articleService.env.KAFKA_BOOTSTRAP_SERVERS }}
+  opensearch.host: {{ .Values.searchService.env.OPENSEARCH_HOST }}
+  jwt.issuer: {{ .Values.articleService.env.JWT_ISSUER_URI }}

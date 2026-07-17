@@ -1,0 +1,3 @@
+{{- define "fnmp.fullname" -}}
+{{- .Values.fullnameOverride | default .Chart.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}

@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.searchService.name }}
+  labels:
+    app: {{ .Values.searchService.name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  replicas: {{ .Values.searchService.replicaCount }}
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: {{ .Values.searchService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.searchService.name }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.searchService.port }}"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: {{ .Values.searchService.name }}
+          image: "{{ .Values.searchService.image.repository }}:{{ .Values.searchService.image.tag }}"
+          imagePullPolicy: {{ .Values.searchService.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.searchService.port }}
+              protocol: TCP
+          env:
+            {{- range $key, $value := .Values.searchService.env }}
+            - name: {{ $key }}
+              value: "{{ $value }}"
+            {{- end }}
+          resources:
+            {{- toYaml .Values.searchService.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.searchService.health.livenessPath }}
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.searchService.health.readinessPath }}
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 5
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop: ["ALL"]

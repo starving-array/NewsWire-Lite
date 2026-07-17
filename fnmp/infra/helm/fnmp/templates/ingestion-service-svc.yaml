@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.ingestionService.name }}
+  labels:
+    app: {{ .Values.ingestionService.name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.ingestionService.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ .Values.ingestionService.name }}
