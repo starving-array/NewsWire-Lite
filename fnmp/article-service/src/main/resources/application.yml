@@ -129,6 +129,7 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+      validate-group-membership: false
       probes:
         enabled: true
       group:
